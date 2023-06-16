@@ -1,0 +1,2 @@
+#First string needs to point to the Unreal Engine Install Folder on your mac, the project setting needs to contain your project name
+sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/OdinTestProject.uproject" -game
