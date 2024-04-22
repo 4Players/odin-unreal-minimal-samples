@@ -15,7 +15,8 @@
 #include "IOSAppDelegate.h"
 #endif
 
-#include "OdinCore/include/odin.h"
+#include "AudioDevice.h"
+#include "odin_sdk.h"
 
 #define LOCTEXT_NAMESPACE "FOdinModule"
 
@@ -28,7 +29,7 @@ void FOdinModule::StartupModule()
     [[IOSAppDelegate GetDelegate] SetFeature:EAudioFeature::Record Active:true];
     [[IOSAppDelegate GetDelegate] SetFeature:EAudioFeature::VoiceChat Active:true];
 #endif
-    
+
 #if PLATFORM_WINDOWS || PLATFORM_LINUX
     FString BaseDir = IPluginManager::Get().FindPlugin("Odin")->GetBaseDir();
     FString LibraryPath;
@@ -64,11 +65,22 @@ void FOdinModule::StartupModule()
     }
 #endif
 
-    auto sample_rate   = 48000;
-    auto channel_count = 2;
+    bool                 bStartupSuccess = false;
+    FAudioDeviceManager* DeviceManager   = FAudioDeviceManager::Get();
+    if (DeviceManager) {
+        FAudioDeviceHandle AudioDevice = DeviceManager->GetActiveAudioDevice();
+        SampleRate                     = AudioDevice->SampleRate;
+        ChannelCount                   = 2;
 
-    odin_startup_ex(ODIN_VERSION,
-                    OdinAudioStreamConfig{(uint32_t)sample_rate, (uint8_t)channel_count});
+        UE_LOG(Odin, Log, TEXT("Odin initialization with sample rate %d and channel count %d."),
+               SampleRate, ChannelCount);
+        bStartupSuccess = odin_startup_ex(
+            ODIN_VERSION, OdinAudioStreamConfig{(uint32_t)SampleRate, (uint8_t)ChannelCount});
+    }
+
+    if (!bStartupSuccess) {
+        UE_LOG(Odin, Warning, TEXT("Odin Startup aborted, no Active Audio Device available."))
+    }
 }
 
 void FOdinModule::ShutdownModule()

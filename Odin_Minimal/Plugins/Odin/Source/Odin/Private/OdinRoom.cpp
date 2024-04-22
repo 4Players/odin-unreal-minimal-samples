@@ -2,32 +2,19 @@
 
 #include "OdinRoom.h"
 
-#include "OdinCore/include/odin.h"
+#include "odin_sdk.h"
 
 #include "Async/Async.h"
 #include "Async/AsyncWork.h"
 #include "Engine/World.h"
 
 #include "Odin.h"
+#include "OdinFunctionLibrary.h"
 #include "OdinRoom.AsyncTasks.h"
 
 UOdinRoom::UOdinRoom(const class FObjectInitializer& PCIP)
     : Super(PCIP)
 {
-
-    this->room_handle_ = odin_room_create();
-    odin_room_set_event_callback(
-        this->room_handle_,
-        [](OdinRoomHandle roomHandle, const struct OdinEvent* event, void* user_data) {
-            UObject* obj = static_cast<UObject*>(user_data);
-            if (obj && obj->IsValidLowLevel() && obj->IsA(UOdinRoom::StaticClass())) {
-                UOdinRoom* room = static_cast<UOdinRoom*>(user_data);
-                if (roomHandle && room && room->IsValidLowLevel() && nullptr != event) {
-                    room->HandleOdinEvent(*event);
-                }
-            }
-        },
-        this);
 }
 
 UOdinRoom::~UOdinRoom()
@@ -50,8 +37,24 @@ void UOdinRoom::FinishDestroy()
 UOdinRoom* UOdinRoom::ConstructRoom(UObject*                WorldContextObject,
                                     const FOdinApmSettings& InitialAPMSettings)
 {
-    auto room = NewObject<UOdinRoom>();
+    auto room = NewObject<UOdinRoom>(WorldContextObject);
+
+    room->room_handle_ = odin_room_create();
+    odin_room_set_event_callback(
+        room->room_handle_,
+        [](OdinRoomHandle roomHandle, const struct OdinEvent* event, void* user_data) {
+            UObject* obj = static_cast<UObject*>(user_data);
+            if (obj && obj->IsValidLowLevel() && obj->IsA(UOdinRoom::StaticClass())) {
+                UOdinRoom* room = static_cast<UOdinRoom*>(user_data);
+                if (roomHandle && room && room->IsValidLowLevel() && nullptr != event) {
+                    room->HandleOdinEvent(*event);
+                }
+            }
+        },
+        room);
+
     room->UpdateAPMConfig(InitialAPMSettings);
+
     return room;
 }
 
@@ -149,6 +152,11 @@ void UOdinRoom::Destroy()
         this->capture_medias_.Empty();
     }
 
+    {
+        FScopeLock lock(&this->medias_cs_);
+        this->medias_.Empty();
+    }
+
     // (new FAutoDeleteAsyncTask<DestroyRoomTask>(this->room_handle_))->StartBackgroundTask();
     odin_room_close(room_handle_);
     odin_room_set_event_callback(room_handle_, nullptr, nullptr);
@@ -160,6 +168,7 @@ void UOdinRoom::BindCaptureMedia(UOdinCaptureMedia* media)
     if (!media)
         return;
 
+    media->SetRoom(this);
     {
         FScopeLock lock(&this->capture_medias_cs_);
         this->capture_medias_.Add(media);
@@ -172,6 +181,10 @@ void UOdinRoom::BindCaptureMedia(UOdinCaptureMedia* media)
 
 void UOdinRoom::UnbindCaptureMedia(UOdinCaptureMedia* media)
 {
+    if (!media)
+        return;
+
+    media->RemoveRoom();
     {
         FScopeLock lock(&this->capture_medias_cs_);
         this->capture_medias_.Remove(media);
@@ -185,6 +198,14 @@ void UOdinRoom::UnbindCaptureMedia(UOdinCaptureMedia* media)
 
 void UOdinRoom::HandleOdinEvent(const OdinEvent event)
 {
+    if (!this || !IsValid(this) || this->HasAnyFlags(RF_BeginDestroyed | RF_FinishDestroyed)) {
+        UE_LOG(Odin, Warning,
+               TEXT("Aborted Handle Odin Event before Game Thread synchronization due to invalid "
+                    "object pointer."))
+        return;
+    }
+
+    UWorld* World = GetWorld();
     switch (event.tag) {
         case OdinEventTag::OdinEvent_Joined: {
             auto          own_peer_id = event.joined.own_peer_id;
@@ -196,9 +217,11 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
             FString own_user_id  = UTF8_TO_TCHAR(event.joined.own_user_id);
 
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [roomId, roomCustomer, own_user_id, own_peer_id, user_data, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(World, this,
+                                                                      "OdinEvent_Joined"))
                         return;
+
                     if (joined_callbacks_cs_.TryLock()) {
                         for (auto& callback : this->joined_callbacks_) {
                             callback(roomId, roomCustomer, user_data, own_peer_id, own_user_id);
@@ -219,8 +242,9 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
                                     (int)event.peer_joined.peer_user_data_len};
 
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [peer_id, user_id, user_data, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(World, this,
+                                                                      "OdinEvent_PeerJoined"))
                         return;
 
                     this->onPeerJoined.Broadcast(peer_id, user_id, user_data, this);
@@ -232,8 +256,9 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
             auto peer_id = event.peer_left.peer_id;
 
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [peer_id, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(World, this,
+                                                                      "OdinEvent_PeerLeft"))
                         return;
 
                     this->onPeerLeft.Broadcast(peer_id, this);
@@ -245,8 +270,9 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
             TArray<uint8> user_data{event.peer_user_data_changed.peer_user_data,
                                     (int)event.peer_user_data_changed.peer_user_data_len};
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [peer_id, user_data, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(
+                            World, this, "OdinEvent_PeerUserDataChanged"))
                         return;
 
                     this->onPeerUserDataChanged.Broadcast(peer_id, user_data, this);
@@ -258,8 +284,9 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
             TArray<uint8> room_data{room_data_changed.room_user_data,
                                     (int)room_data_changed.room_user_data_len};
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [room_data_changed, room_data, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(
+                            World, this, "OdinEvent_RoomUserDataChanged"))
                         return;
 
                     this->onRoomUserDataChanged.Broadcast(room_data, this);
@@ -271,8 +298,9 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
             auto media_handle = event.media_added.media_handle;
             auto peer_id      = event.media_added.peer_id;
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [media_handle, peer_id, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(World, this,
+                                                                      "OdinEvent_MediaAdded"))
                         return;
 
                     auto       playback_media = NewObject<UOdinPlaybackMedia>();
@@ -290,16 +318,20 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
             auto peer_id      = event.media_removed.peer_id;
 
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [media_handle, peer_id, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(World, this,
+                                                                      "OdinEvent_MediaRemoved"))
                         return;
 
                     UOdinMediaBase* base_media = nullptr;
-                    if (medias_.Contains(media_handle)) {
-                        if (medias_.RemoveAndCopyValue(media_handle, base_media)
-                            && base_media != nullptr) {
-                            auto playback_media = Cast<UOdinPlaybackMedia>(base_media);
-                            this->onMediaRemoved.Broadcast(peer_id, playback_media, this);
+                    {
+                        FScopeLock lock(&this->medias_cs_);
+                        if (medias_.Contains(media_handle)) {
+                            if (medias_.RemoveAndCopyValue(media_handle, base_media)
+                                && base_media != nullptr) {
+                                auto playback_media = Cast<UOdinPlaybackMedia>(base_media);
+                                this->onMediaRemoved.Broadcast(peer_id, playback_media, this);
+                            }
                         }
                     }
                 },
@@ -311,16 +343,16 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
             auto active       = event.media_active_state_changed.active;
 
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [peer_id, media_handle, active, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(
+                            World, this, "OdinEvent_MediaActiveStateChanged"))
                         return;
 
                     if (!medias_.Contains(media_handle))
                         return;
                     UOdinMediaBase* media = *medias_.Find(media_handle);
                     if (media) {
-                        this->onMediaActiveStateChanged.Broadcast(peer_id, media, active,
-                                                                  this);
+                        this->onMediaActiveStateChanged.Broadcast(peer_id, media, active, this);
                     }
                 },
                 TStatId(), nullptr, ENamedThreads::GameThread);
@@ -329,8 +361,9 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
             auto          peer_id = event.message_received.peer_id;
             TArray<uint8> data{event.message_received.data, (int)event.message_received.data_len};
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [peer_id, data, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(World, this,
+                                                                      "OdinEvent_MessageReceived"))
                         return;
 
                     this->onMessageReceived.Broadcast(peer_id, data, this);
@@ -354,8 +387,9 @@ void UOdinRoom::HandleOdinEvent(const OdinEvent event)
                 } break;
             }
             FFunctionGraphTask::CreateAndDispatchWhenReady(
-                [=]() {
-                    if (!this->IsValidLowLevel())
+                [state, World, this]() {
+                    if (!UOdinFunctionLibrary::OdinAsyncValidityCheck(
+                            World, this, "OdinEvent_RoomConnectionStateChanged"))
                         return;
 
                     this->onConnectionStateChanged.Broadcast(state, this);

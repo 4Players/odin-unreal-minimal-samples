@@ -23,7 +23,7 @@ UOdinFunctionLibrary* UOdinFunctionLibrary::getOdinFunctionLibrary()
 
 UOdinCaptureMedia* UOdinFunctionLibrary::Odin_CreateMedia(UPARAM(ref) UAudioCapture*& audioCapture)
 {
-    auto capture_media = NewObject<UOdinCaptureMedia>();
+    auto capture_media = NewObject<UOdinCaptureMedia>(audioCapture);
     capture_media->SetAudioCapture(audioCapture);
     return capture_media;
 }
@@ -58,7 +58,7 @@ FString UOdinFunctionLibrary::FormatError(int32 code, bool ueTrace)
 
 FString UOdinFunctionLibrary::BytesToString(const TArray<uint8>& data)
 {
-    return ::BytesToString(data.GetData(), data.Num());
+    return FString(data.Num(), UTF8_TO_TCHAR(data.GetData()));
 }
 
 UOdinAudioCapture* UOdinFunctionLibrary::CreateOdinAudioCapture(UObject* WorldContextObject)
@@ -72,9 +72,26 @@ UOdinAudioCapture* UOdinFunctionLibrary::CreateOdinAudioCapture(UObject* WorldCo
                     "will not be able to react to capture devices being removed."));
     }
     UOdinAudioCapture* OdinAudioCapture = NewObject<UOdinAudioCapture>(World);
-    if (OdinAudioCapture->OpenDefaultAudioStream()) {
+    if (OdinAudioCapture->RestartCapturing(false)) {
         return OdinAudioCapture;
     }
     UE_LOG(Odin, Error, TEXT("Failed to open a default audio stream to the audio capture device."));
     return nullptr;
+}
+
+bool UOdinFunctionLibrary::OdinAsyncValidityCheck(const UWorld*  WorldReference,
+                                                  const UObject* ObjectToCheck,
+                                                  const FString& CheckReferenceName)
+{
+    if (!WorldReference || !IsValid(WorldReference)) {
+        UE_LOG(Odin, Verbose, TEXT("Aborting %s due to invalid World."), *CheckReferenceName);
+        return false;
+    }
+
+    if (!ObjectToCheck || !IsValid(ObjectToCheck)) {
+        UE_LOG(Odin, Verbose, TEXT("Aborting %s due to invalid object ptr."), *CheckReferenceName);
+        return false;
+    }
+
+    return true;
 }
