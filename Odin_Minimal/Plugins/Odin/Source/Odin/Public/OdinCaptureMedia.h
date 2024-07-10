@@ -1,4 +1,4 @@
-/* Copyright (c) 2022-2023 4Players GmbH. All rights reserved. */
+/* Copyright (c) 2022-2024 4Players GmbH. All rights reserved. */
 
 #pragma once
 
@@ -70,6 +70,8 @@ class ODIN_API UOdinCaptureMedia : public UOdinMediaBase
     UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
     void SetMaxVolumeMultiplier(const float newValue);
 
+    void Reconnect();
+
   protected:
     virtual void BeginDestroy() override;
 
@@ -84,8 +86,8 @@ class ODIN_API UOdinCaptureMedia : public UOdinMediaBase
     float max_volume_multiplier_ = 3.0f;
 
   private:
-    void  HandleInputDeviceChanges();
-    float GetVolumeMultiplierAdjusted() const;
+    static void ReconnectCaptureMedia(TWeakObjectPtr<UOdinCaptureMedia> CaptureMedia);
+    float       GetVolumeMultiplierAdjusted() const;
 
     FCriticalSection capture_generator_delegate_;
 

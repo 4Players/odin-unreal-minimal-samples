@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2022-2023 4Players GmbH. All rights reserved. */
+﻿/* Copyright (c) 2022-2024 4Players GmbH. All rights reserved. */
 
 #include "OdinFunctionLibrary.h"
 
@@ -23,6 +23,8 @@ UOdinFunctionLibrary* UOdinFunctionLibrary::getOdinFunctionLibrary()
 
 UOdinCaptureMedia* UOdinFunctionLibrary::Odin_CreateMedia(UPARAM(ref) UAudioCapture*& audioCapture)
 {
+    if (!audioCapture)
+        return nullptr;
     auto capture_media = NewObject<UOdinCaptureMedia>(audioCapture);
     capture_media->SetAudioCapture(audioCapture);
     return capture_media;
@@ -71,7 +73,7 @@ UOdinAudioCapture* UOdinFunctionLibrary::CreateOdinAudioCapture(UObject* WorldCo
                TEXT("No World Context provided when creating Odin Audio Capture. Audio Capture "
                     "will not be able to react to capture devices being removed."));
     }
-    UOdinAudioCapture* OdinAudioCapture = NewObject<UOdinAudioCapture>(World);
+    UOdinAudioCapture* OdinAudioCapture = NewObject<UOdinAudioCapture>(WorldContextObject);
     if (OdinAudioCapture->RestartCapturing(false)) {
         return OdinAudioCapture;
     }
@@ -79,16 +81,10 @@ UOdinAudioCapture* UOdinFunctionLibrary::CreateOdinAudioCapture(UObject* WorldCo
     return nullptr;
 }
 
-bool UOdinFunctionLibrary::OdinAsyncValidityCheck(const UWorld*  WorldReference,
-                                                  const UObject* ObjectToCheck,
-                                                  const FString& CheckReferenceName)
+bool UOdinFunctionLibrary::Check(const TWeakObjectPtr<UObject> ObjectToCheck,
+                                 const FString&                CheckReferenceName)
 {
-    if (!WorldReference || !IsValid(WorldReference)) {
-        UE_LOG(Odin, Verbose, TEXT("Aborting %s due to invalid World."), *CheckReferenceName);
-        return false;
-    }
-
-    if (!ObjectToCheck || !IsValid(ObjectToCheck)) {
+    if (!ObjectToCheck.IsValid()) {
         UE_LOG(Odin, Verbose, TEXT("Aborting %s due to invalid object ptr."), *CheckReferenceName);
         return false;
     }
