@@ -1,6 +1,6 @@
-# Odin Integration Sample for Unreal Engine 5.3: A Minimalist Guide
+# Odin Integration Sample for Unreal Engine
 
-This project offers a simplistic, yet comprehensive example showcasing the integration of 4Players' ODIN technology with Unreal Engine 5.3.
+This project offers a simple, yet comprehensive example showcasing the integration of 4Players' ODIN technology with Unreal Engine 5.4.
 
 ## Key Topics Showcased
 
