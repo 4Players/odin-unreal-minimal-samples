@@ -1,14 +1,20 @@
 # Odin Integration Sample for Unreal Engine
 
-This project offers a simple, yet comprehensive example showcasing the integration of 4Players' ODIN technology with Unreal Engine 5.4.
+This project offers a simple, yet comprehensive example showcasing the integration of 4Players' ODIN technology with Unreal Engine 5.4. ODIN is a Voice Chat full service solution. Find out more about Odin and 4Players [on our documentation site](https://www.4players.io/odin/)
 
 ## Key Topics Showcased
+
+This sample demonstrates the minimal amount of blueprints needed to use ODIN together with Unreal's Audio Engine and Networking.
 
 - Setting up Odin by creating a new room token, constructing a room handle and joining an Odin room
 - Setting up Local Client Audio capture and linking it to the Odin room.
 - Connecting remote media streams to local playback with the Odin Synth Component and destroying local playback when a media stream gets disconnected.
 - **Proximity Voice Chat:** Using RepNotify to synchronize Odin Peers with Unreal Characters. This makes Proximity Voice Chat possible in Multiplayer games.
 - Handling Android Permissions
+
+## Getting Started
+
+You'll need the latest Unreal Engine 5 release to start the minimal sample project. The Odin Unreal Plugin in general is compatible with Unreal versions starting with 4.26.
 
 ## To Test Multiplayer:
 
@@ -24,7 +30,13 @@ To test the project on Android, you'll need to adjust the Game Default Map, befo
 
 You'll find the utilized Blueprints in the `Content > Odin > AndroidMinimal` directory. The Game Mode `GM_OdinAndroid` simply references the Player Controller. The `PC_OdinAndroid` PlayerController Blueprint contains the important setup logic. There you'll see the blueprint setup for requesting microphone permissions and the default Odin setup afterwards. For more information on the microphone permissions, please take a look at our [in-depth guide for setting up Android permissions in Unreal](https://www.4players.io/odin/guides/unreal/android-permissions/).
 
-## Basic Synchronization Principles
+## Basic Setup without Multiplayer Synchronization
+
+The Blueprint `PC_OdinAndroid` will show you how to setup a simple connection to an Odin room, without using Spatializaiton for Proximity Voice Chat. It's less complicated, because we don't need to replicate the Odin Peer Id to the correct Player Character. Instead we simply create an `OdinSynthComponent` for each Media that connects to our Odin room. 
+
+The implementation shown in `PC_OdinAndroid` will work on every platform. If the nodes are called on another platform, the Android Permission steps will simply be skipped.
+
+## Basic Multiplayer Synchronization Principles for Proximity Voice Chat
 
 You can find all the relevant Blueprints regarding Multiplayer Synchronization in the `Content > Odin > Multiplayer` directory. The Game Mode BP `GM_OdinMultiplayer` will simply reference the Player Controller and Player Character. The Player Character BP `PC_OdinMultiplayer` will set up Odin by binding to the relevant events and then joining the Odin room.
 
@@ -34,4 +46,4 @@ In the `OnRep_PeerId` implementation we'll handle the spawning of an `OdinSynthC
 
 The `OnMediaAdded` event on the PlayerController will be called, once this is the case. If a Player Character object was registered for the `Peer Id` we got from the event, we know that Unreal replication has already happened and we can savely Create the Odin Synth Component for Voice Playback. Otherwise we'll wait and rely on the `OnRep_PeerId` implementation on the Player Character the current Media Stream belongs to.
 
-For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series, specifically the Spatial Audio video](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2).
+For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series, specifically the Spatial Audio video](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2). 
