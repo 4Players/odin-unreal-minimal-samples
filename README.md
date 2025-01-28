@@ -18,6 +18,23 @@ This sample demonstrates the minimal amount of blueprints needed to use ODIN for
 
 You'll need the latest Unreal Engine 5 release to start the minimal sample project. The Odin Unreal Plugin in general is compatible with Unreal versions starting with 4.26.
 
+This repository uses [LFS](https://git-lfs.github.com) (large file storage) to manage pre-compiled binaries. Note that a standard clone of the repository might only retrieve the metadata about these files managed with LFS. In order to retrieve the actual data with LFS, please follow these steps:
+
+1. Clone the repository:  
+   ```
+   git clone https://github.com/4Players/odin-unreal-minimal-samples.git
+   ```
+
+2. Cache the actual LFS data on your local machine and replace the metadata in the binary files with their actual contents: 
+   ```
+   git lfs fetch
+   git lfs checkout
+   ```
+   ... or if you have a recent LFS version:
+   ```
+   git lfs pull
+   ```
+
 ## Starting the Minimal Multiplayer Sample:
 
 - Open the Map `Content > Odin > Maps > Odin_Multiplayer`
