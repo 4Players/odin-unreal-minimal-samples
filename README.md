@@ -1,8 +1,8 @@
 ![Screenshot from the Minimal Samples Project](https://www.4players.io/images/odin/unreal/minimal-samples/odin_unreal_minimal-samples_teaser.webp)
 
-# Odin Integration Sample for Unreal Engine
+# Odin Integration Sample for Unreal Engine and FMOD
 
-This project offers a simple, yet comprehensive example showcasing the integration of 4Players' [ODIN Unreal SDK](https://github.com/4Players/odin-sdk) within Unreal Engine. For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2). 
+This project offers a simple, yet comprehensive example showcasing the integration of 4Players' [ODIN Unreal SDK](https://github.com/4Players/odin-sdk) within Unreal Engine and the FMOD Audio Engine. For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2). 
 
 ## Key Topics Showcased
 
@@ -16,7 +16,7 @@ This sample demonstrates the minimal amount of blueprints needed to use ODIN for
 
 ## Getting Started
 
-You'll need the latest Unreal Engine 5 release to start the minimal sample project. The Odin Unreal Plugin in general is compatible with Unreal versions starting with 4.26.
+You'll need the latest Unreal Engine 5.4 release to start the minimal sample project. The Odin Unreal Plugin in general is compatible with Unreal versions starting with 4.26.
 
 This repository uses [LFS](https://git-lfs.github.com) (large file storage) to manage pre-compiled binaries. Note that a standard clone of the repository might only retrieve the metadata about these files managed with LFS. In order to retrieve the actual data with LFS, please follow these steps:
 
@@ -34,6 +34,8 @@ This repository uses [LFS](https://git-lfs.github.com) (large file storage) to m
    ```
    git lfs pull
    ```
+
+3. Install the FMOD Plugins into the Unreal Project. You can get them from the [FMOD website](https://www.fmod.com/) after registering.
 
 ## Starting the Minimal Multiplayer Sample:
 
