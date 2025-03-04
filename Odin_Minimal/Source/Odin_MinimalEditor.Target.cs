@@ -8,8 +8,10 @@ public class Odin_MinimalEditorTarget : TargetRules
 	public Odin_MinimalEditorTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
-		DefaultBuildSettings = BuildSettingsVersion.V4;
+        bOverrideBuildEnvironment = true;
+        IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
+        DefaultBuildSettings = BuildSettingsVersion.Latest;
 
-		ExtraModuleNames.AddRange( new string[] { "Odin_Minimal" } );
+        ExtraModuleNames.AddRange( new string[] { "Odin_Minimal" } );
 	}
 }

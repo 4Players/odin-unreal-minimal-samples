@@ -12,6 +12,9 @@
 
 class OdinMediaSoundGenerator;
 
+/**
+ * Component for playing back audio data received from an Odin Media Stream in Unreal.
+ */
 UCLASS(Blueprintable, BlueprintType, ClassGroup = Synth, meta = (BlueprintSpawnableComponent))
 class ODIN_API UOdinSynthComponent : public USynthComponent
 {
@@ -38,6 +41,13 @@ class ODIN_API UOdinSynthComponent : public USynthComponent
      */
     UFUNCTION(BlueprintCallable, Category = "Odin|Sound")
     void AdjustAttenuation(const FSoundAttenuationSettings &InAttenuationSettings);
+
+    /**
+     * Retrieves the playback media stream pointer that was assigned to this synth component.
+     * @return A pointer to the playback media stream that is used to playback audio.
+     */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Odin")
+    UOdinPlaybackMedia *GetConnectedPlaybackMedia() const;
 
     // We want to hide the non-virtual function in USynthComponent here!
     void AddAudioBufferListener(IAudioBufferListener *InAudioBufferListener);

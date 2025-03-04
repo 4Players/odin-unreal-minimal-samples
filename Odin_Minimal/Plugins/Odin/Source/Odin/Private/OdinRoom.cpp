@@ -10,8 +10,11 @@
 
 #include "Odin.h"
 #include "OdinFunctionLibrary.h"
+#include "OdinInitializationSubsystem.h"
 #include "OdinRoom.AsyncTasks.h"
 #include "OdinSubsystem.h"
+#include "Engine/Engine.h"
+#include "Engine/GameInstance.h"
 
 UOdinRoom::UOdinRoom(const class FObjectInitializer& PCIP)
     : Super(PCIP)
@@ -24,12 +27,10 @@ void UOdinRoom::BeginDestroy()
 {
     Super::BeginDestroy();
     this->CleanUp();
-    DeregisterRoomFromSubsystem();
 }
 
 void UOdinRoom::FinishDestroy()
 {
-    odin_room_destroy(room_handle_);
     Super::FinishDestroy();
 }
 
@@ -68,17 +69,26 @@ void UOdinRoom::CleanUp()
         this->medias_.Empty();
     }
 
-    // UE_LOG(Odin, Log, TEXT("Pre room close, room handle: %lld"), room_handle_);
-    OdinReturnCode ReturnCode = odin_room_close(room_handle_);
-    if (odin_is_error(ReturnCode)) {
-        FString FormattedCloseError = UOdinFunctionLibrary::FormatError(ReturnCode, false);
-        UE_LOG(Odin, Error, TEXT("Error while closing Odin room: %s"), *FormattedCloseError);
+    bool bIsInitialized = false;
+    if (UWorld* World = GetWorld()) {
+        if (UGameInstance* GameInstance = World->GetGameInstance()) {
+            if (UOdinInitializationSubsystem* OdinSubsystem =
+                    GameInstance->GetSubsystem<UOdinInitializationSubsystem>()) {
+                bIsInitialized = OdinSubsystem->IsOdinInitialized();
+            }
+        }
     }
-    // UE_LOG(Odin, Log, TEXT("Post room close, pre set event callback, room handle: %lld"),
-    // room_handle_); odin_room_set_event_callback(room_handle_, nullptr, nullptr); UE_LOG(Odin,
-    // Log, TEXT("Post set event callback, pre room destroy, room handle: %lld"), room_handle_);
-    // odin_room_destroy(room_handle_);
-    // UE_LOG(Odin, Log, TEXT("Post room destroy callback, room handle: %lld"), room_handle_);
+
+    if (room_handle_ > 0) {
+        if (bIsInitialized) {
+            (new FAutoDeleteAsyncTask<DestroyRoomTask>(RoomHandle()))->StartBackgroundTask();
+        }
+        room_handle_ = 0;
+    } else {
+        UE_LOG(Odin, Log,
+               TEXT("UOdinRoom::Cleanup(): Aborted starting destroy room task, room handle is "
+                    "already invalid."));
+    }
 }
 
 void UOdinRoom::DeregisterRoomFromSubsystem()
@@ -92,21 +102,22 @@ void UOdinRoom::DeregisterRoomFromSubsystem()
 UOdinRoom* UOdinRoom::ConstructRoom(UObject*                WorldContextObject,
                                     const FOdinApmSettings& InitialAPMSettings)
 {
-    if (!GEngine) {
-        UE_LOG(Odin, Error,
-               TEXT("Aborted Odin Room Construction due to invalid GEngine reference."))
-        return nullptr;
-    }
-
     UOdinSubsystem* OdinSubsystem = UOdinSubsystem::Get();
     if (!OdinSubsystem) {
         UE_LOG(Odin, Error,
-               TEXT("Aborted Odin Room Construction due to invalid Odin Subsystem reference."))
+               TEXT("Aborted Odin Room Construction due to invalid Odin Subsystem reference."));
         return nullptr;
     }
 
     auto room          = NewObject<UOdinRoom>(WorldContextObject);
     room->room_handle_ = odin_room_create();
+    if (0 == room->room_handle_) {
+        UE_LOG(Odin, Error,
+               TEXT("UOdinRoom::ConstructRoom: odin_room_create() returned a zero room handle, "
+                    "indicating that the ODIN client runtime was not initialized yet."));
+        return nullptr;
+    }
+
     OdinSubsystem->RegisterRoom(room->room_handle_, room);
     odin_room_set_event_callback(
         room->room_handle_,
@@ -169,14 +180,16 @@ void UOdinRoom::UpdateAPMConfig(FOdinApmSettings apm_config)
     odin_apm_config.transient_suppressor         = apm_config.bTransientSuppresor;
     odin_apm_config.gain_controller              = apm_config.bGainController;
 
+    if (nullptr == submix_listener_) {
+        submix_listener_ = NewObject<UOdinSubmixListener>(this);
+        submix_listener_->SetRoom(this->room_handle_);
+    }
     if (odin_apm_config.echo_canceller) {
-        if (submix_listener_ == nullptr) {
-            submix_listener_ = NewObject<UOdinSubmixListener>(this);
-            submix_listener_->SetRoom(this->room_handle_);
+        if (!bWasStreamDelayInitialized) {
+            UpdateAPMStreamDelay(200);
         }
-        if (!submix_listener_->IsListening())
-            submix_listener_->StartSubmixListener();
-    } else if (submix_listener_ != nullptr && submix_listener_->IsListening()) {
+        submix_listener_->StartSubmixListener();
+    } else {
         submix_listener_->StopSubmixListener();
     }
 
@@ -198,12 +211,25 @@ void UOdinRoom::UpdateAPMConfig(FOdinApmSettings apm_config)
         } break;
         default:;
     }
-    odin_room_configure_apm(this->room_handle_, odin_apm_config);
+
+    const OdinReturnCode ReturnCode = odin_room_configure_apm(this->room_handle_, odin_apm_config);
+    if (odin_is_error(ReturnCode)) {
+        FOdinModule::LogErrorCode(TEXT("Call to odin_room_configure_apm returned error: "),
+                                  ReturnCode);
+    } else {
+        UE_LOG(Odin, Verbose, TEXT("Successfully called odin_room_configure_apm"));
+    }
 }
 
 void UOdinRoom::UpdateAPMStreamDelay(int64 DelayInMs)
 {
-    odin_audio_set_stream_delay(this->room_handle_, DelayInMs);
+    const OdinReturnCode ReturnCode = odin_audio_set_stream_delay(this->room_handle_, DelayInMs);
+    if (odin_is_error(ReturnCode)) {
+        FOdinModule::LogErrorCode(TEXT("Call to odin_room_configure_apm returned error: "),
+                                  ReturnCode);
+    } else {
+        bWasStreamDelayInitialized = true;
+    }
 }
 
 void UOdinRoom::BindCaptureMedia(UOdinCaptureMedia* media)
@@ -241,6 +267,11 @@ void UOdinRoom::UnbindCaptureMedia(UOdinCaptureMedia* media)
     }
 }
 
+UOdinSubmixListener* UOdinRoom::GetSubmixListener() const
+{
+    return submix_listener_;
+}
+
 void UOdinRoom::HandleOdinEvent(OdinRoomHandle RoomHandle, const OdinEvent event)
 {
     UOdinSubsystem* OdinSubsystem = UOdinSubsystem::Get();
@@ -261,9 +292,9 @@ void UOdinRoom::HandleOdinEvent(OdinRoomHandle RoomHandle, const OdinEvent event
             TArray<uint8> user_data{event.joined.room_user_data,
                                     static_cast<int>(event.joined.room_user_data_len)};
 
-            FString roomId       = UTF8_TO_TCHAR(event.joined.room_id);
-            FString roomCustomer = UTF8_TO_TCHAR(event.joined.customer);
-            FString own_user_id  = UTF8_TO_TCHAR(event.joined.own_user_id);
+            FString roomId       = StringCast<TCHAR>(event.joined.room_id).Get();
+            FString roomCustomer = StringCast<TCHAR>(event.joined.customer).Get();
+            FString own_user_id  = StringCast<TCHAR>(event.joined.own_user_id).Get();
 
             FFunctionGraphTask::CreateAndDispatchWhenReady(
                 [roomId, roomCustomer, own_user_id, own_peer_id, user_data, WeakOdinRoom]() {
@@ -287,7 +318,7 @@ void UOdinRoom::HandleOdinEvent(OdinRoomHandle RoomHandle, const OdinEvent event
         } break;
         case OdinEvent_PeerJoined: {
             auto          peer_id = event.peer_joined.peer_id;
-            FString       user_id = UTF8_TO_TCHAR(event.peer_joined.user_id);
+            FString       user_id = StringCast<TCHAR>(event.peer_joined.user_id).Get();
             TArray<uint8> user_data{event.peer_joined.peer_user_data,
                                     static_cast<int>(event.peer_joined.peer_user_data_len)};
 

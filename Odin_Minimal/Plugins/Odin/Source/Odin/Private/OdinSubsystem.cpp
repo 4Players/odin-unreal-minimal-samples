@@ -1,16 +1,27 @@
 ﻿/* Copyright (c) 2022-2024 4Players GmbH. All rights reserved. */
 
 #include "OdinSubsystem.h"
-
 #include "Odin.h"
 #include "OdinRoom.h"
+#include "Engine/Engine.h"
 
 UOdinSubsystem* UOdinSubsystem::Get()
 {
     if (GEngine) {
-        return GEngine->GetEngineSubsystem<UOdinSubsystem>();
+        UOdinSubsystem* OdinSubSystem = GEngine->GetEngineSubsystem<UOdinSubsystem>();
+        return OdinSubSystem;
     }
+    UE_LOG(Odin, Error, TEXT("Error retrieving UOdinSubsystem: GEngine reference is invalid."));
     return nullptr;
+}
+
+bool UOdinSubsystem::GlobalIsRoomValid(OdinRoomHandle Handle)
+{
+    UOdinSubsystem* OdinSubsystem = Get();
+    if (OdinSubsystem) {
+        return OdinSubsystem->IsRoomRegistered(Handle);
+    }
+    return false;
 }
 
 void UOdinSubsystem::Initialize(FSubsystemCollectionBase& Collection)

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="Workspace" id="{cca53c1c-31c4-4762-9c1b-17598c44c0da}">
+		<property name="builtBanksOutputDirectory">
+			<value>F:/Freelance/odin-unreal-minimal-samples/Odin_Minimal/Content/FMOD</value>
+		</property>
+		<relationship name="masterEventFolder">
+			<destination>{074a70c1-3723-4427-ad75-74ac043a6c83}</destination>
+		</relationship>
+		<relationship name="masterTagFolder">
+			<destination>{9393b85c-b8fb-4367-8adf-751948cc4e4e}</destination>
+		</relationship>
+		<relationship name="masterEffectPresetFolder">
+			<destination>{c8ccafb2-feb2-4a02-a065-6e45e3d4ad26}</destination>
+		</relationship>
+		<relationship name="masterParameterPresetFolder">
+			<destination>{8eaa578e-e847-49a7-a04a-908de81c0cce}</destination>
+		</relationship>
+		<relationship name="masterBankFolder">
+			<destination>{4e6ac8ff-8d0d-4730-a72a-647dd7f6e3c4}</destination>
+		</relationship>
+		<relationship name="masterSandboxFolder">
+			<destination>{0ebb2507-b501-4868-87ec-7aaf7a0fa3ea}</destination>
+		</relationship>
+		<relationship name="masterAssetFolder">
+			<destination>{041eb702-bc2f-4a0d-91bd-5897177ff073}</destination>
+		</relationship>
+		<relationship name="mixer">
+			<destination>{87c97ebc-be85-4690-b7e0-192d14b8df9d}</destination>
+		</relationship>
+		<relationship name="profilerSessionFolder">
+			<destination>{a5713ac8-f66c-495b-9b81-781ddf36b3b8}</destination>
+		</relationship>
+		<relationship name="platforms">
+			<destination>{d0f74cea-f62a-4ce8-928f-651826bcbf60}</destination>
+		</relationship>
+	</object>
+</objects>

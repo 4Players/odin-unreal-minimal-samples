@@ -1,0 +1,40 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Odin FMOD Adapter",
+	"Description": "An adapter plugin used to ease the integration of Odin in Unreal Projects using FMOD",
+	"Category": "Other",
+	"CreatedBy": "4Players GmbH",
+	"CreatedByURL": "https://www.4players.io/",
+	"DocsURL": "https://github.com/4Players/odin-unreal-fmod-adapter",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "OdinFmodAdapter",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64", "Mac", "IOS", "Linux", "LinuxArm64", "Android" ],
+			"AdditionalDependencies": [
+				"Odin",
+				"FMODStudio",
+				"FMODStudioEditor"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Odin",
+			"Enabled": true
+		},
+		{
+			"Name": "FMODStudio",
+			"Enabled": true
+		}
+	]
+}
