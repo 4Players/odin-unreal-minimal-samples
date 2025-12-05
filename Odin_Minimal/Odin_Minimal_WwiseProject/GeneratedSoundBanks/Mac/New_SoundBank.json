@@ -1,0 +1,73 @@
+{
+ "SoundBanksInfo": {
+  "Platform": "Mac",
+  "BasePlatform": "Mac",
+  "SchemaVersion": "16",
+  "SoundBankVersion": "154",
+  "SoundBanks": [
+   {
+    "Id": "4072029455",
+    "Type": "User",
+    "GUID": "{9638F28B-2F76-4458-998E-3FBD60EEF206}",
+    "Language": "SFX",
+    "Hash": "{8F6BC6DA-FDE0-4349-9E49-9BACD11DC6F2}",
+    "ObjectPath": "\\SoundBanks\\Default Work Unit\\New_SoundBank",
+    "ShortName": "New_SoundBank",
+    "Path": "New_SoundBank.bnk",
+    "Media": [
+     {
+      "Id": "18387322",
+      "Language": "SFX",
+      "Streaming": "false",
+      "Location": "Memory",
+      "ShortName": "cinematic_hit_scifi_a_08.wav",
+      "CachePath": "7F/{7FE5DE6D-7E77-B5EF-01EB-631583029C63}.wem"
+     }
+    ],
+    "Plugins": {
+     "Custom": [
+      {
+       "Id": "108394521",
+       "Name": "Audio Input",
+       "ObjectPath": "\\Actor-Mixer Hierarchy\\Default Work Unit\\dynamic_audio\\Audio Input",
+       "GUID": "{7AE4C776-4B11-4906-B7F6-AF1098FA10F4}",
+       "LibName": "Wwise Audio Input",
+       "LibId": "13107202"
+      }
+     ]
+    },
+    "Events": [
+     {
+      "Id": "2035748501",
+      "Name": "Play_cinematic_hit_scifi_a_08",
+      "ObjectPath": "\\Events\\Default Work Unit\\Play_cinematic_hit_scifi_a_08",
+      "GUID": "{966A5268-0249-4073-ADD0-FA4930959B11}",
+      "DurationType": "OneShot",
+      "DurationMin": "4",
+      "DurationMax": "4",
+      "MediaRefs": [
+       {
+        "Id": "18387322"
+       }
+      ]
+     },
+     {
+      "Id": "1500134938",
+      "Name": "Play_dynamic_audio",
+      "ObjectPath": "\\Events\\Default Work Unit\\Play_dynamic_audio",
+      "GUID": "{AA2F5143-EDE8-4FEB-A06D-CD52429FBB0E}",
+      "DurationType": "Infinite",
+      "PluginRefs": {
+       "Custom": [
+        {
+         "Id": "108394521"
+        }
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "FileHash": "{9A8BC7B3-9776-8E01-E2BF-BB616684DCD3}"
+ }
+}

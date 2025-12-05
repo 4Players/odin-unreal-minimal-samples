@@ -6,9 +6,10 @@
 #include "OdinMediaBase.h"
 #include "UObject/Object.h"
 #include "odin_sdk.h"
-
+#include "OdinPlaybackStreamReader.h"
 #include <memory>
 
+#include "Odin.h"
 #include "OdinPlaybackMedia.generated.h"
 
 class UOdinRoom;
@@ -70,23 +71,47 @@ class ODIN_API UOdinPlaybackMedia : public UOdinMediaBase
 
   public:
     UOdinPlaybackMedia();
-    UOdinPlaybackMedia(OdinMediaStreamHandle streamHandle, UOdinRoom *room);
+    UOdinPlaybackMedia(OdinMediaStreamHandle streamHandle, UOdinRoom* room);
 
-    void SetRoom(UOdinRoom *room)
+    /**
+     * Sets the room for the playback media object to the provided room pointer.
+     *
+     * @param room Pointer to the UOdinRoom object to set as the room for the playback media.
+     */
+    void SetRoom(UOdinRoom* room)
     {
         this->Room = room;
     }
 
+    /**
+     * Retrieves the internal ID of the media from the Odin SDK.
+     *
+     * @return The internal media ID that uniquely identifies the media.
+     */
     UFUNCTION(BlueprintCallable,
               meta = (DisplayName = "Get Output Media ID",
                       ToolTip = "Get the internal ID of an output media", Category = "Odin|Debug"))
     int32 GetMediaId();
 
+    virtual void SetMediaHandle(OdinMediaStreamHandle handle) override;
+
+    /**
+     * @brief Get the peer ID associated with the media stream.
+     *
+     * @return The peer ID of the media stream.
+     */
     UFUNCTION(BlueprintCallable,
               meta = (DisplayName = "Get Output Media Peer ID",
                       ToolTip = "Get the peer ID of an output media", Category = "Odin|Debug"))
     int64 GetPeerId();
 
+    /**
+     * Retrieves the statistics of the audio stream including the total packets, processed packets,
+     * packets arrived too early, packets arrived too late, dropped packets, invalid packets,
+     * repeated packets, and lost packets.
+     *
+     * @return FOdinAudioStreamStats struct containing the audio stream statistics.
+     */
     UFUNCTION(BlueprintCallable,
               meta = (DisplayName = "Get Output Media Audio Stats",
                       ToolTip     = "Get statistics for an output media",
@@ -94,9 +119,26 @@ class ODIN_API UOdinPlaybackMedia : public UOdinMediaBase
                       Category = "Odin|Debug"))
     FOdinAudioStreamStats AudioStreamStats();
 
-  protected:
-    void BeginDestroy() override;
+    [[deprecated("Please use GetPlaybackStreamReader() to access the "
+                 "FOdinPlaybackStreamReader::ReadData function.")]]
+    OdinReturnCode ReadData(int32& RefReaderIndex, float* OutAudio, int32 NumSamples);
 
-    UPROPERTY(BlueprintReadOnly, Category = "Room")
-    UOdinRoom *Room;
+    TSharedPtr<FOdinPlaybackStreamReader, ESPMode::ThreadSafe> GetPlaybackStreamReader() const;
+
+    virtual void AddAudioBufferListener(IAudioBufferListener* InAudioBufferListener) override;
+    virtual void RemoveAudioBufferListener(IAudioBufferListener* AudioBufferListener) override;
+
+  protected:
+    virtual void BeginDestroy() override;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Odin | Playback")
+    UOdinRoom* Room;
+
+    /**
+     * The Audio Buffer Capacity in seconds.
+     */
+    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Odin | Playback")
+    float AudioBufferCapacity = 0.1f;
+
+    TSharedPtr<FOdinPlaybackStreamReader, ESPMode::ThreadSafe> PlaybackStreamReader;
 };

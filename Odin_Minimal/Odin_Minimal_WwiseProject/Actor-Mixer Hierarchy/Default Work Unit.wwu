@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{28E4F775-F8E8-4ABF-A52A-EAE8354DDB25}" SchemaVersion="123">
+	<AudioObjects>
+		<WorkUnit Name="Default Work Unit" ID="{28E4F775-F8E8-4ABF-A52A-EAE8354DDB25}" PersistMode="Standalone">
+			<ChildrenList>
+				<Sound Name="dynamic_audio" ID="{BB61C364-7EB1-49C0-9C45-B5F97F85CA68}" ShortID="224588745">
+					<PropertyList>
+						<Property Name="IsLoopingEnabled" Type="bool" Value="True"/>
+					</PropertyList>
+					<ReferenceList>
+						<Reference Name="Conversion">
+							<ObjectRef Name="PCM As Input" ID="{E712A671-9647-44EF-8B1B-857926D620F0}" WorkUnitID="{F6B2880C-85E5-47FA-A126-645B5DFD9ACC}"/>
+						</Reference>
+						<Reference Name="OutputBus">
+							<ObjectRef Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" WorkUnitID="{6F086BD3-EA72-4AA2-8293-4B83C485D1AC}"/>
+						</Reference>
+					</ReferenceList>
+					<ChildrenList>
+						<SourcePlugin Name="Audio Input" ID="{7AE4C776-4B11-4906-B7F6-AF1098FA10F4}" ShortID="108394521" PluginName="Wwise Audio Input" CompanyID="0" PluginID="200">
+							<Language>SFX</Language>
+						</SourcePlugin>
+					</ChildrenList>
+					<ActiveSourceList>
+						<ActiveSource Name="Audio Input" ID="{7AE4C776-4B11-4906-B7F6-AF1098FA10F4}" Platform="Linked"/>
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="cinematic_hit_scifi_a_08" ID="{56DC0BCF-D47A-450B-9967-6BFEBCA9F525}" ShortID="660738601">
+					<ReferenceList>
+						<Reference Name="Conversion">
+							<ObjectRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" WorkUnitID="{8D359C40-B4DB-413F-B9A1-CFD036DDAB42}"/>
+						</Reference>
+						<Reference Name="OutputBus">
+							<ObjectRef Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" WorkUnitID="{6F086BD3-EA72-4AA2-8293-4B83C485D1AC}"/>
+						</Reference>
+					</ReferenceList>
+					<ChildrenList>
+						<AudioFileSource Name="cinematic_hit_scifi_a_08" ID="{C2F04BC5-8244-4476-A173-DAA0D5E2A26C}">
+							<Language>SFX</Language>
+							<AudioFile>cinematic_hit_scifi_a_08.wav</AudioFile>
+							<MediaIDList>
+								<MediaID ID="18387322"/>
+							</MediaIDList>
+						</AudioFileSource>
+					</ChildrenList>
+					<ActiveSourceList>
+						<ActiveSource Name="cinematic_hit_scifi_a_08" ID="{C2F04BC5-8244-4476-A173-DAA0D5E2A26C}" Platform="Linked"/>
+					</ActiveSourceList>
+				</Sound>
+			</ChildrenList>
+		</WorkUnit>
+	</AudioObjects>
+</WwiseDocument>

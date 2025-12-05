@@ -1,0 +1,10 @@
+Event	ID	Name			Wwise Object Path	Notes
+	1500134938	Play_dynamic_audio			\Default Work Unit\Play_dynamic_audio	
+	2035748501	Play_cinematic_hit_scifi_a_08			\Default Work Unit\Play_cinematic_hit_scifi_a_08	
+
+Source plug-ins	ID	Name	Type		Wwise Object Path	Notes
+	108394521	Audio Input	Wwise Audio Input		\Actor-Mixer Hierarchy\Default Work Unit\dynamic_audio\Audio Input	
+
+In Memory Audio	ID	Name	Audio source file		Wwise Object Path	Notes	Data Size
+	18387322	cinematic_hit_scifi_a_08	E:\Freelance\odin-unreal-minimal-samples\Odin_Minimal\Odin_Minimal_WwiseProject\.cache\7F\{7FE5DE6D-7E77-B5EF-01EB-631583029C63}.wem		\Actor-Mixer Hierarchy\Default Work Unit\cinematic_hit_scifi_a_08		705760
+

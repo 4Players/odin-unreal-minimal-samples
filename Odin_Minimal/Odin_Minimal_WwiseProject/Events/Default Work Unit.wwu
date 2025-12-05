@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{367BA24C-AC73-456F-9AD9-8F449F029210}" SchemaVersion="123">
+	<Events>
+		<WorkUnit Name="Default Work Unit" ID="{367BA24C-AC73-456F-9AD9-8F449F029210}" PersistMode="Standalone">
+			<ChildrenList>
+				<Event Name="Play_dynamic_audio" ID="{AA2F5143-EDE8-4FEB-A06D-CD52429FBB0E}">
+					<ChildrenList>
+						<Action Name="" ID="{4AD8F26E-2F7D-4FBC-A476-B6F9532F19DA}" ShortID="437876223">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="dynamic_audio" ID="{BB61C364-7EB1-49C0-9C45-B5F97F85CA68}" WorkUnitID="{28E4F775-F8E8-4ABF-A52A-EAE8354DDB25}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Play_cinematic_hit_scifi_a_08" ID="{966A5268-0249-4073-ADD0-FA4930959B11}">
+					<ChildrenList>
+						<Action Name="" ID="{D7BC54A1-2805-41BE-9AA5-8C5A4E9F3FAC}" ShortID="904718251">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="cinematic_hit_scifi_a_08" ID="{56DC0BCF-D47A-450B-9967-6BFEBCA9F525}" WorkUnitID="{28E4F775-F8E8-4ABF-A52A-EAE8354DDB25}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+			</ChildrenList>
+		</WorkUnit>
+	</Events>
+</WwiseDocument>

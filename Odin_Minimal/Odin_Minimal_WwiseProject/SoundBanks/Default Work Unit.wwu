@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{10736A13-398D-44D8-A457-374F60EA1C14}" SchemaVersion="123">
+	<SoundBanks>
+		<WorkUnit Name="Default Work Unit" ID="{10736A13-398D-44D8-A457-374F60EA1C14}" PersistMode="Standalone">
+			<ChildrenList>
+				<SoundBank Name="New_SoundBank" ID="{9638F28B-2F76-4458-998E-3FBD60EEF206}">
+					<ObjectInclusionList>
+						<ObjectRef Name="cinematic_hit_scifi_a_08" ID="{56DC0BCF-D47A-450B-9967-6BFEBCA9F525}" WorkUnitID="{28E4F775-F8E8-4ABF-A52A-EAE8354DDB25}" Origin="Manual" Filter="7"/>
+						<ObjectRef Name="Play_dynamic_audio" ID="{AA2F5143-EDE8-4FEB-A06D-CD52429FBB0E}" WorkUnitID="{367BA24C-AC73-456F-9AD9-8F449F029210}" Origin="Manual" Filter="7"/>
+					</ObjectInclusionList>
+					<ObjectExclusionList/>
+					<GameSyncExclusionList/>
+				</SoundBank>
+			</ChildrenList>
+		</WorkUnit>
+	</SoundBanks>
+</WwiseDocument>
