@@ -1,8 +1,10 @@
-![Screenshot from the Minimal Samples Project](https://www.4players.io/images/odin/unreal/minimal-samples/odin_unreal_minimal-samples_teaser.webp)
+![Screenshot from the Minimal Samples Project](https://docs.4players.io/assets/images/odin_unreal_minimal-samples_teaser-9c5dc1ee13c69a09a2a60571335eafea.webp)
 
-# Odin Integration Sample for Unreal Engine
+# Odin Integration Sample for Unreal Engine and Wwise Audio by Audiokinetic
 
-This project offers a simple, yet comprehensive example showcasing the integration of 4Players' [ODIN Unreal SDK](https://github.com/4Players/odin-sdk) within Unreal Engine. For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2). 
+This project offers a simple, yet comprehensive example showcasing the integration of 4Players' [ODIN Unreal SDK](https://github.com/4Players/odin-sdk) within Unreal Engine using our simple [Odin to Wwise Adapter Plugin for Unreal](https://github.com/4Players/odin-unreal-wwise-adapter-1.x/).  For a better understanding on the workings of the plugin, refer to its repository.
+
+For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2). 
 
 ## Key Topics Showcased
 
@@ -10,13 +12,13 @@ This sample demonstrates the minimal amount of blueprints needed to use ODIN for
 
 - Setting up Odin by creating a new room token, constructing a room handle and joining an Odin room
 - Setting up Audio Capture for the local client and linking it to the Odin room.
-- Connecting remote media streams to local playback with the Odin Synth Component and destroying local playback when a media stream gets disconnected.
+- Connecting remote media streams to local playback with the `Ak Odin Audio Input Component` and destroying local playback when a media stream gets disconnected.
 - **Proximity Voice Chat:** Using RepNotify to synchronize Odin Peers with Unreal Characters. This makes Proximity Voice Chat possible in Multiplayer games.
 - Handling Android Permissions.
 
 ## Getting Started
 
-You'll need the latest Unreal Engine 5 release to start the minimal sample project. The Odin Unreal Plugin in general is compatible with Unreal versions starting with 4.26.
+You'll need the latest Unreal Engine 5 release to start the minimal sample project. The Odin Unreal Plugin in general is compatible with Unreal versions starting with 4.26. Additionally you will need the Wwise Plugin for Unreal, which you can get from the [Audiokinetic Launcher](https://www.audiokinetic.com/download/)
 
 This repository uses [LFS](https://git-lfs.github.com) (large file storage) to manage pre-compiled binaries. Note that a standard clone of the repository might only retrieve the metadata about these files managed with LFS. In order to retrieve the actual data with LFS, please follow these steps:
 
@@ -57,13 +59,13 @@ Multiplayer specific code is called first in the `On Success` callback of the `J
 
 ![Calling replicate Peer Id in the On Success callback](https://www.4players.io/images/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnSuccess.webp)
 
-In the `OnRep_PeerId` implementation we'll handle the spawning of an `OdinSynthComponent` on remotely controlled Player Characters. We don't want to create the component on the locally controlled Player Character, because we don't want to hear any Voice from there. We also only want to create the Odin Synth Component, if a media stream was already registered for the `Peer Id` value. If this component was not yet created, it means that Unreal was faster than Odin regarding replication and we need to wait for the Odin media stream to connect.
+In the `OnRep_PeerId` implementation we'll handle the spawning of an `AkOdinAudioInputComponent` on remotely controlled Player Characters. We don't want to create the component on the locally controlled Player Character, because we don't want to hear any Voice from there. We also only want to create the Ak Odin Audio Input Component, if a media stream was already registered for the `Peer Id` value. If this component was not yet created, it means that Unreal was faster than Odin regarding replication and we need to wait for the Odin media stream to connect.
 
 ![The OnRep_PeerId implementation in the Player Character Blueprint](https://www.4players.io/images/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnRepPeerId.webp)
 
-The `OnMediaAdded` event on the Player Controller will be called, once this is the case. If a Player Character object was registered for the `Peer Id` we got from the event, we know that Unreal replication has already happened and we can securely create the Odin Synth Component for Playback. Otherwise we'll wait and rely on the `OnRep_PeerId` implementation on the Player Character the current Media Stream belongs to.
+The `OnMediaAdded` event on the Player Controller will be called, once this is the case. If a Player Character object was registered for the `Peer Id` we got from the event, we know that Unreal replication has already happened and we can securely create the Ak Odin Audio Input Component for Playback. Otherwise we'll wait and rely on the `OnRep_PeerId` implementation on the Player Character the current Media Stream belongs to.
 
-![The OnMediaAdded creates an Odin Synth Component, if the Player Character has already received a Peer Id, or wait if not.](https://www.4players.io/images/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnMediaAdded.webp)
+![The OnMediaAdded creates an Ak Odin Audio Input Component, if the Player Character has already received a Peer Id, or wait if not.](https://www.4players.io/images/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnMediaAdded.webp)
 
 ### More information
 
