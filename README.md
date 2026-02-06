@@ -55,11 +55,11 @@ You can find all the relevant Blueprints regarding Multiplayer Synchronization i
 
 Multiplayer specific code is called first in the `On Room Joined` event handler. The "Room Joined" callback will provide us with the local player's peer id in the current room. We'll call `Set Pawn Peer Id` Event on our Player Character, which sets the `Peer Id` value on the server. The server will then replicate the value to all connected clients. Because we changed the `Replication` setting of the `Peer Id` value to `RepNotify`, any change to the `Peer Id` value will call the `OnRep_PeerId` function on all clients. The `OnRep_PeerId` function was automatically created by Unreal. 
 
-![Calling replicate Peer Id in the On Success callback](https://docs.4players.io/img/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnSuccess.webp)
+![Calling replicate Peer Id in the On Success callback](https://docs.4players.io/img/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnSuccess_Odin2.webp)
 
 In the `OnRep_PeerId` implementation we'll handle the spawning of an `OdinSynthComponent` on remotely controlled Player Characters. We don't want to create the component on the locally controlled Player Character, because we don't want to hear any Voice from there. We also only want to create the Odin Synth Component, if a media stream was already registered for the `Peer Id` value. If this component was not yet created, it means that Unreal was faster than Odin regarding replication and we need to wait for the Odin media stream to connect.
 
-![The OnRep_PeerId implementation in the Player Character Blueprint](https://docs.4players.io/img/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnRepPeerId.webp)
+![The OnRep_PeerId implementation in the Player Character Blueprint](https://docs.4players.io/img/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnRepPeerId_Odin2.webp)
 
 In the `OnRoomPeerJoined` event we finally handle the creation of an Odin Synth Component for the remote peer. If a Player Character object was registered for the `Peer Id` we got from the event, we know that Unreal replication has already happened and we can securely create the Odin Synth Component for Playback. Otherwise we'll wait and rely on the `OnRep_PeerId` implementation on the Player Character the current Decoder belongs to.
 
