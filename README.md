@@ -55,7 +55,7 @@ You can find all the relevant Blueprints regarding Multiplayer Synchronization i
 
 Multiplayer specific code is called first in the `On Room Joined` event handler. The "Room Joined" callback will provide us with the local player's peer id in the current room. We'll call `Set Pawn Peer Id` Event on our Player Character, which sets the `Peer Id` value on the server. The server will then replicate the value to all connected clients. Because we changed the `Replication` setting of the `Peer Id` value to `RepNotify`, any change to the `Peer Id` value will call the `OnRep_PeerId` function on all clients. The `OnRep_PeerId` function was automatically created by Unreal. 
 
-![Calling replicate Peer Id in the On Success callback](https://docs.4players.io/img/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnSuccess_Odin2.webp)
+![Calling replicate Peer Id in the On Success callback](./docs/pc_OnRoomJoined.webp)
 
 ### Peer Id OnRep Implementation
 
