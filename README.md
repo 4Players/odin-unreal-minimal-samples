@@ -2,7 +2,7 @@
 
 # Odin Integration Sample for Unreal Engine
 
-This project offers a simple, yet comprehensive example showcasing the integration of the [ODIN Unreal SDK](https://github.com/4Players/odin-sdk) by [4Players](https://www.4players.io/company/about_us/) for Unreal Engine. For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2).
+This project offers a simple, yet comprehensive example showcasing the integration of the [ODIN Unreal SDK](https://github.com/4Players/odin-sdk) by [4Players](https://www.4players.io/company/about_us/) for Unreal Engine. For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series on Youtube.](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2).
 
 ## Key Topics Showcased
 
@@ -41,7 +41,7 @@ This repository uses [LFS](https://git-lfs.github.com) (large file storage) to m
 - In the Play-In-Editor options, change the `Number of Players` to more than 1.
 - Set the `Net Mode` to `Play As Listen Server` or `Play As Client`
 
-This will start the Editor in Multiplayer Mode and spawn the given number of Players. By walking to another Player Character, you will be able to hear yourself speaking from the Character's position, showcasing Proximity Voice Chat in Unreal. You can change the Proximity Voice behavior by adjusting the values in the Asset `Content > Odin > Blueprints > Multiplayer_Odin_Attenuation`.
+This will start the Editor in Multiplayer Mode and spawn the given number of Players. By walking to another Player Character, you will be able to hear yourself speaking from the Character's position, showcasing Proximity Voice Chat in Unreal. You can change the Proximity Voice behavior by adjusting the values in the Asset `Content > Odin > Multiplayer > SA_OdinMultiplayer`.
 
 ## Starting the Minimal Android Sample:
 
@@ -57,15 +57,40 @@ Multiplayer specific code is called first in the `On Room Joined` event handler.
 
 ![Calling replicate Peer Id in the On Success callback](https://docs.4players.io/img/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnSuccess_Odin2.webp)
 
-In the `OnRep_PeerId` implementation we'll handle the spawning of an `OdinSynthComponent` on remotely controlled Player Characters. We don't want to create the component on the locally controlled Player Character, because we don't want to hear any Voice from there. We also only want to create the Odin Synth Component, if a media stream was already registered for the `Peer Id` value. If this component was not yet created, it means that Unreal was faster than Odin regarding replication and we need to wait for the Odin media stream to connect.
+### Peer Id OnRep Implementation
 
-![The OnRep_PeerId implementation in the Player Character Blueprint](https://docs.4players.io/img/odin/unreal/minimal-samples/odin_unreal_minimal-samples_OnRepPeerId_Odin2.webp)
 
-In the `OnRoomPeerJoined` event we finally handle the creation of an Odin Synth Component for the remote peer. If a Player Character object was registered for the `Peer Id` we got from the event, we know that Unreal replication has already happened and we can securely create the Odin Synth Component for Playback. Otherwise we'll wait and rely on the `OnRep_PeerId` implementation on the Player Character the current Decoder belongs to.
+ In the `OnRep_PeerId` implementation on the Player Character Blueprint we'll want to register the remotely controlled Player Character to the Peer Id that was replicated. First we need to make sure to not register the locally controlled Player Character, because we don't want to hear any Voice from there.
+
+![The OnRep_PeerId implementation in the Player Character Blueprint](./docs/character_OnRep_PeerId.webp)
+
+`RegisterCharacter` is called on our Player Controller.
+
+### Registering Remote Characters
+
+The `RegisterCharacter` function on the Player Controller simply stores the calling Player Character in a map, with the supplied Odin peer id being the key. After that we try setting up audio playback. 
+
+In the `OnRoomPeerJoined` event callback, we first check if there was already a call to `RegisterCharacter` performed. If yes, we already have access to the remotely controlled Player Character of the Peer that just joined the room. We can then continue with setting up the audio playback.
+
+![Register Character and OnRoomPeerJoined event implementation.](./docs/pc_OnPeerChoinedAndRegisterCharacter.webp)
+
+We try setting up the audio playback in both these functions, because we don't know which one will be called first. If the `OnRoomPeerJoined` event is called first, we won't yet have access to the remotely controlled Player Character of the Peer that just joined the room. In this case we'll have to wait for the `OnRep_PeerId` event to be called, before we can set up the audio playback. 
+
+If the `OnRep_PeerId` is called first, we already have acces to the remotely controlled character, but we can't yet setup the Odin Decoder for playback, because the remote peer has not yet joined the Odin room.
+
+### Setting up Audio Playback
+
+![Setting up Audio Playback](./docs/pc_SetupAudio.webp)
+
+Before setting up the audio playback, we will first check if we already have access to the remotely controlled Player Character that corresponds to the Odin Peer for which we want to setup audio. If yes, we construct a new decoder, register it and then request that a new Odin Synth Component is created on the Player Character and connected to the newly created Odin Decoder.
+
+![Odin Synth Component creation on the player character](./docs/character_ConstructPlayback.webp)
+
+In the `ConstructPlayback` function, we'll call `Add Component by Class`, select `Odin Synth Component` as class and connect the `Decoder` input. After creation, we'll setup the Synth Components attenuation settings, so that the audio played back from the character is attenuated in a way that it sounds like the voice is coming from the character's position. Take a look at the Attenuation Settings Asset in `Odin > Multiplayer > SA_OdinMultiplayer`.  
 
 ### More information
 
-For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series, specifically the Spatial Audio video](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2). 
+For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Youtube Tutorial series, specifically the Spatial Audio video](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2). 
 
 ## Basic Setup without Multiplayer Synchronization
 
