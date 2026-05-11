@@ -17,7 +17,7 @@ void UOdinAudioCapture::BeginDestroy()
     Super::BeginDestroy();
     UE_LOG(Odin, Verbose, TEXT("UOdinAudioCapture::BeginDestroy()"));
     if (AudioCapture.IsStreamOpen()) {
-        AudioCapture.AbortStream();
+        AudioCapture.CloseStream();
     }
 }
 
@@ -156,11 +156,10 @@ void UOdinAudioCapture::ChangeCaptureDeviceById(FString NewDeviceId, bool& bSucc
 
 void UOdinAudioCapture::StartCapturing(bool& bSuccess)
 {
-    if (!AudioCapture.IsStreamOpen()) {
+    bSuccess = false;
+    if (AudioCapture.IsStreamOpen()) {
         bSuccess = AudioCapture.StartStream();
-        return;
     }
-    bSuccess = AudioCapture.IsCapturing();
 }
 
 void UOdinAudioCapture::AsyncChangeCaptureDeviceById(FString                      NewDeviceId,
