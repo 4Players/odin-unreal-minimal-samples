@@ -1,6 +1,6 @@
 {
 	"FileVersion": 2,
-	"EngineVersion": "5.6",
+	"EngineVersion": "5.7",
 	"Version": 880,
 	"PlatformAllowList": [ "Win64", "Mac", "IOS", "Linux", "LinuxArm64", "Android" ],
 	"VersionName": "2.1.3",

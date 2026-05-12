@@ -102,3 +102,6 @@
 /xcuserdata
 /OdinTestProject.xcworkspace
 
+
+## Wwise specific
+/Plugins/Wwise*
