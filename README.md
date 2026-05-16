@@ -43,6 +43,11 @@ This repository uses [LFS](https://git-lfs.github.com) (large file storage) to m
 
 This will start the Editor in Multiplayer Mode and spawn the given number of Players. By walking to another Player Character, you will be able to hear yourself speaking from the Character's position, showcasing Proximity Voice Chat in Unreal. You can change the Proximity Voice behavior by adjusting the values in the Asset `Content > Odin > Blueprints > Multiplayer_Odin_Attenuation`.
 
+> [!IMPORTANT]
+> All Player Controller Blueprints have a variable called `Access Key`. You will need to enter a valid Odin Voice Chat Access Key in order for the
+> samples to work. You can find more information on Access Keys in our [Odin Voice documentation](https://docs.4players.io/voice/introduction/access-keys/). There, you can also generate a free Access Key which
+> allows you to develop and test your game with up to 25 Concurrent Peers.
+
 ## Starting the Minimal Android Sample:
 
 To test the project on Android, you'll need to adjust the Game Default Map, before packaging and copying a build to your device. Go to `Project Settings > Maps & Modes` and select the `Odin_AndroidMinimal` map as the Game Default Map. You're now ready to package and launch the project on your mobile device!
