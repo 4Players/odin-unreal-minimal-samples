@@ -157,11 +157,14 @@ class ODIN_API UOdinAudioCapture : public UAudioCapture, public FTickableGameObj
     UPROPERTY(BlueprintAssignable, Category = "Odin|Audio Capture")
     FCaptureDeviceChange OnDefaultDeviceChanged;
 
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCaptureDeviceChangedWithDetails, const FOdinCaptureDeviceInfo&, PreviousDevice, const FOdinCaptureDeviceInfo&,
+                                                 NewDevice);
+
     /**
-     * @brief Will be called, if the Selcted Device was switched by the system or user.
+     *
      */
     UPROPERTY(BlueprintAssignable, Category = "Odin|Audio Capture")
-    FCaptureDeviceChange OnSelectedDeviceChanged;
+    FCaptureDeviceChangedWithDetails OnCaptureDeviceChanged;
 
 #pragma region FTickableGameObject
     virtual void Tick(float DeltaTime) override;

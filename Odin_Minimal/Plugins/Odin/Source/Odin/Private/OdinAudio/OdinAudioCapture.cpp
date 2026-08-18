@@ -11,7 +11,7 @@ void UOdinAudioCapture::BeginDestroy()
     ODIN_LOG(Verbose, "ODIN Destroy: %s", ANSI_TO_TCHAR(__FUNCTION__));
 
     Super::BeginDestroy();
-    if (AudioCapture.IsStreamOpen()) {
+    if (AudioCapture.IsStreamOpen() && AudioCapture.IsCapturing()) {
         AudioCapture.AbortStream();
     }
 }
@@ -31,19 +31,12 @@ void UOdinAudioCapture::PostInitProperties()
 
 void UOdinAudioCapture::HandleDefaultDeviceChanged(EAudioDeviceChangedRole AudioDeviceChangedRole, FString DeviceId)
 {
-    const bool bIsCurrentDeviceDefault        = CurrentSelectedDevice.DeviceId.Equals(DefaultDeviceId);
-    const bool bIsCurrentDeviceEqualNewDevice = CurrentSelectedDevice.DeviceId.Equals(DeviceId);
-    DefaultDeviceId                           = DeviceId;
+    const bool bIsCurrentDeviceDefault = CurrentSelectedDevice.DeviceId.Equals(DefaultDeviceId);
+    DefaultDeviceId                    = DeviceId;
 
     const FString RoleAsString = UEnum::GetValueAsString(AudioDeviceChangedRole);
     ODIN_LOG(Display, TEXT("Recognized change in default capture device, new Default Device Id: %s, Role: %s"), *DeviceId, *RoleAsString);
     if (bIsCurrentDeviceDefault) {
-        if (bIsCurrentDeviceEqualNewDevice) {
-            ODIN_LOG(Display, TEXT("Recognized change in default capture device. Current selected device is "
-                                   "already the new device, stopping reconnect to new default device."));
-            return;
-        }
-
         ODIN_LOG(Display, TEXT("Recognized change in default capture device. Current selected device is "
                                "default device, starting reconnect to new default device."));
 
@@ -161,7 +154,8 @@ template <typename DeviceCheck> bool UOdinAudioCapture::ChangeCaptureDevice(cons
     TArray<FOdinCaptureDeviceInfo> AllDevices;
     GetCaptureDevicesAvailable(AllDevices);
 
-    bool bSuccess = false;
+    FOdinCaptureDeviceInfo PreviousDevice;
+    bool                   bSuccess = false;
     // look for the name of the selected device.
     for (int32 i = 0; i < AllDevices.Num(); ++i) {
         const FOdinCaptureDeviceInfo OdinCaptureDeviceInfo = AllDevices[i];
@@ -171,6 +165,7 @@ template <typename DeviceCheck> bool UOdinAudioCapture::ChangeCaptureDevice(cons
                 return true;
             } else {
                 CurrentSelectedDeviceIndex = i;
+                PreviousDevice             = CurrentSelectedDevice;
                 CurrentSelectedDevice      = OdinCaptureDeviceInfo;
                 bSuccess                   = true;
             }
@@ -184,13 +179,13 @@ template <typename DeviceCheck> bool UOdinAudioCapture::ChangeCaptureDevice(cons
 
         if (IsInGameThread()) {
             RestartCapturing();
-            OnSelectedDeviceChanged.Broadcast();
+            OnCaptureDeviceChanged.Broadcast(PreviousDevice, CurrentSelectedDevice);
         } else {
             TWeakObjectPtr<UOdinAudioCapture> WeakThisPtr = this;
-            AsyncTask(ENamedThreads::GameThread, [WeakThisPtr]() {
+            AsyncTask(ENamedThreads::GameThread, [WeakThisPtr, PreviousDevice]() {
                 if (WeakThisPtr.IsValid()) {
                     WeakThisPtr->RestartCapturing();
-                    WeakThisPtr->OnSelectedDeviceChanged.Broadcast();
+                    WeakThisPtr->OnCaptureDeviceChanged.Broadcast(PreviousDevice, WeakThisPtr->CurrentSelectedDevice);
                 }
             });
         }
