@@ -3,7 +3,7 @@
   "Project": {
    "Name": "Odin_Minimal_WwiseProject",
    "GUID": "{5609623D-AFC8-4A23-A1BD-0371D91FA62A}",
-   "Generator": "2025.1.7.9143"
+   "Generator": "2025.1.10.9233"
   },
   "CacheRoot": "../.cache",
   "Platforms": [
@@ -31,6 +31,6 @@
     "UseAsStandIn": "true"
    }
   ],
-  "FileHash": "{57730FF8-B352-B4C9-9A1D-77C6D3E2D110}"
+  "FileHash": "{DE5EA9F8-311C-EBAD-C4B7-21668DCA53B0}"
  }
 }
