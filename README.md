@@ -4,6 +4,9 @@
 
 This project offers a simple, yet comprehensive example showcasing the integration of the [ODIN Unreal SDK](https://github.com/4Players/odin-sdk) by [4Players](https://www.4players.io/company/about_us/) for Unreal Engine. For more in-depth information on replication and how to make Proximity Voice Chat work in Unreal, take a look at our [Odin Unreal Tutorial series on Youtube.](https://www.youtube.com/watch?v=MfZsbYhtUlU&list=PLAe4Im8mFTAuFFrFKnnl_MMJi8de7dYHs&index=2).
 
+> [!IMPORTANT]
+> If you'd like to test the Voice Chat locally using Unreal's Play In Editor (PIE) Multiplayer Options, it is necessary to set the `Run Under One Process` setting to `false` in the `EditorSettings`, otherwise the Voice Chat might not work. This is an Editor-Only requirement when using PIE.
+
 ## Key Topics Showcased
 
 This sample demonstrates the minimal amount of blueprints needed to use ODIN for both Global or Proximity Voice Chat on different platforms:
@@ -37,9 +40,11 @@ This repository uses [LFS](https://git-lfs.github.com) (large file storage) to m
 
 ## Starting the Minimal Multiplayer Sample:
 
-- Open the Map `Content > Odin > Maps > Odin_Multiplayer`
-- In the Play-In-Editor options, change the `Number of Players` to more than 1.
-- Set the `Net Mode` to `Play As Listen Server` or `Play As Client`
+1. In the `EditorSettings`, under `Level Editor > Play > Multiplayer Options`, make sure the `Run Under One Process` setting is set to `false`
+   - It's easier to simply search for `Run Under One Process` in the search bar.
+2. Open the Map `Content > Odin > Maps > Odin_Multiplayer`
+3. In the Play-In-Editor options, change the `Number of Players` to more than 1.
+4. Set the `Net Mode` to `Play As Listen Server` or `Play As Client`
 
 This will start the Editor in Multiplayer Mode and spawn the given number of Players. By walking to another Player Character, you will be able to hear yourself speaking from the Character's position, showcasing Proximity Voice Chat in Unreal. You can change the Proximity Voice behavior by adjusting the values in the Asset `Content > Odin > Multiplayer > SA_OdinMultiplayer`.
 
