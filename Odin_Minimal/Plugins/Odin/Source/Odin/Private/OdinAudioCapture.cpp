@@ -17,7 +17,7 @@ void UOdinAudioCapture::BeginDestroy()
     Super::BeginDestroy();
     UE_LOG(Odin, Verbose, TEXT("UOdinAudioCapture::BeginDestroy()"));
     if (AudioCapture.IsStreamOpen()) {
-        AudioCapture.AbortStream();
+        AudioCapture.CloseStream();
     }
 }
 
@@ -129,9 +129,7 @@ void UOdinAudioCapture::AsyncGetCaptureDevicesAvailable(FGetCaptureDeviceDelegat
 }
 
 void UOdinAudioCapture::GetCurrentAudioCaptureDevice(FOdinCaptureDeviceInfo& CurrentDevice) const
-{
-    CurrentDevice = CurrentSelectedDevice;
-}
+{ CurrentDevice = CurrentSelectedDevice; }
 
 void UOdinAudioCapture::ChangeToDefaultCaptureDevice()
 {
@@ -156,11 +154,10 @@ void UOdinAudioCapture::ChangeCaptureDeviceById(FString NewDeviceId, bool& bSucc
 
 void UOdinAudioCapture::StartCapturing(bool& bSuccess)
 {
-    if (!AudioCapture.IsStreamOpen()) {
+    bSuccess = false;
+    if (AudioCapture.IsStreamOpen()) {
         bSuccess = AudioCapture.StartStream();
-        return;
     }
-    bSuccess = AudioCapture.IsCapturing();
 }
 
 void UOdinAudioCapture::AsyncChangeCaptureDeviceById(FString                      NewDeviceId,
@@ -358,9 +355,7 @@ void UOdinAudioCapture::Tick(float DeltaTime)
 }
 
 bool UOdinAudioCapture::IsTickable() const
-{
-    return GetTryRecognizingDeviceDisconnected();
-}
+{ return GetTryRecognizingDeviceDisconnected(); }
 
 void UOdinAudioCapture::InitializeGenerator()
 {
@@ -429,14 +424,10 @@ void UOdinAudioCapture::TryRetrieveDefaultDevice()
 }
 
 bool UOdinAudioCapture::GetTryRecognizingDeviceDisconnected() const
-{
-    return bTryRecognizingDeviceDisconnect;
-}
+{ return bTryRecognizingDeviceDisconnect; }
 
 void UOdinAudioCapture::SetTryRecognizingDeviceDisconnected(bool bTryRecognizing)
-{
-    bTryRecognizingDeviceDisconnect = bTryRecognizing;
-}
+{ bTryRecognizingDeviceDisconnect = bTryRecognizing; }
 
 bool UOdinAudioCapture::RestartCapturing(bool bAutomaticallyStartCapture)
 {
@@ -526,31 +517,19 @@ void UOdinAudioCapture::OnCaptureCallback(const float* AudioData, int32 NumFrame
 }
 
 bool UOdinAudioCapture::GetIsPaused() const
-{
-    return GetIsMuted();
-}
+{ return GetIsMuted(); }
 
 void UOdinAudioCapture::SetIsPaused(bool bNewValue)
-{
-    SetIsMuted(bNewValue);
-}
+{ SetIsMuted(bNewValue); }
 
 bool UOdinAudioCapture::GetIsMuted() const
-{
-    return bIsCapturingPaused;
-}
+{ return bIsCapturingPaused; }
 
 void UOdinAudioCapture::SetIsMuted(bool bNewValue)
-{
-    bIsCapturingPaused = bNewValue;
-}
+{ bIsCapturingPaused = bNewValue; }
 
 float UOdinAudioCapture::GetVolumeMultiplier() const
-{
-    return VolumeMultiplier;
-}
+{ return VolumeMultiplier; }
 
 void UOdinAudioCapture::SetVolumeMultiplier(float NewMultiplierValue)
-{
-    VolumeMultiplier = NewMultiplierValue;
-}
+{ VolumeMultiplier = NewMultiplierValue; }

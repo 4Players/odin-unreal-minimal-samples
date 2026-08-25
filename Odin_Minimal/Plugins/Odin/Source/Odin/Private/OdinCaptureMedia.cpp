@@ -12,23 +12,16 @@
 
 UOdinCaptureMedia::UOdinCaptureMedia(const class FObjectInitializer& PCIP)
     : Super(PCIP)
-{
-}
+{ UE_LOG(Odin, Verbose, TEXT("Creating UOdinCaptureMedia")); }
 
 void UOdinCaptureMedia::SetRoom(UOdinRoom* connected_room)
-{
-    this->connected_room_ = connected_room;
-}
+{ this->connected_room_ = connected_room; }
 
 void UOdinCaptureMedia::RemoveRoom()
-{
-    this->connected_room_ = nullptr;
-}
+{ this->connected_room_ = nullptr; }
 
 void UOdinCaptureMedia::SetAudioCapture(UAudioCapture* audio_capture)
-{
-    SetAudioGenerator(audio_capture);
-}
+{ SetAudioGenerator(audio_capture); }
 
 void UOdinCaptureMedia::SetAudioGenerator(UAudioGenerator* audioGenerator)
 {
@@ -43,10 +36,9 @@ void UOdinCaptureMedia::SetAudioGenerator(UAudioGenerator* audioGenerator)
 
     this->audio_capture_ = audioGenerator;
 
-    if (this->stream_handle_) {
+    if (GetMediaHandle()) {
         TRACE_CPUPROFILER_EVENT_SCOPE(UOdinCaptureMedia::SetAudioCapture Odin Create Audio Stream)
-        odin_media_stream_destroy(this->stream_handle_);
-        this->SetMediaHandle(0);
+        DestroyOdinMediaStreamHandle();
     }
 
     if (audio_capture_) {
@@ -60,8 +52,8 @@ void UOdinCaptureMedia::SetAudioGenerator(UAudioGenerator* audioGenerator)
                TEXT("Initializing Audio Capture stream with Sample Rate: %d and Channels: %d"),
                GetSampleRate(), GetNumChannels());
 
-        this->stream_handle_ = odin_audio_stream_create(OdinAudioStreamConfig{
-            static_cast<uint32_t>(GetSampleRate()), static_cast<uint8_t>(GetNumChannels())});
+        SetMediaHandle(odin_audio_stream_create(OdinAudioStreamConfig{
+            static_cast<uint32_t>(GetSampleRate()), static_cast<uint8_t>(GetNumChannels())}));
     }
 
     if (const UWorld* World = audioGenerator->GetWorld()) {
@@ -93,61 +85,51 @@ void UOdinCaptureMedia::SetAudioGenerator(UAudioGenerator* audioGenerator)
 void UOdinCaptureMedia::Reset()
 {
     UE_LOG(Odin, Verbose, TEXT("UOdinCaptureMedia::Reset()"));
-    FScopeLock lock(&this->capture_generator_delegate_);
     if (nullptr != audio_capture_) {
+        FScopeLock lock(&this->capture_generator_delegate_);
         audio_capture_->RemoveGeneratorDelegate(audio_generator_handle_);
         audio_capture_                = nullptr;
         this->audio_generator_handle_ = {};
     }
 
-    if (this->stream_handle_) {
-        odin_media_stream_destroy(this->stream_handle_);
-        this->stream_handle_ = 0;
+    if (GetMediaHandle()) {
+        DestroyOdinMediaStreamHandle();
     }
 }
 
 OdinReturnCode UOdinCaptureMedia::ResetOdinStream()
 {
     UE_LOG(Odin, Verbose, TEXT("UOdinCaptureMedia::ResetOdinStream()"));
-    FScopeLock lock(&this->capture_generator_delegate_);
     if (nullptr != audio_capture_) {
+        FScopeLock lock(&this->capture_generator_delegate_);
         this->audio_capture_->RemoveGeneratorDelegate(this->audio_generator_handle_);
     }
+    {
+        FScopeLock lock(&this->capture_generator_delegate_);
+        this->audio_generator_handle_ = {};
+    }
 
-    this->audio_generator_handle_ = {};
-
-    if (this->stream_handle_) {
-        auto result          = odin_media_stream_destroy(this->stream_handle_);
-        this->stream_handle_ = 0;
-        return result;
+    if (GetMediaHandle()) {
+        const auto Result = DestroyOdinMediaStreamHandle();
+        return Result;
     }
     return 0;
 }
 
 float UOdinCaptureMedia::GetVolumeMultiplier() const
-{
-    return volume_multiplier_;
-}
+{ return volume_multiplier_; }
 
 void UOdinCaptureMedia::SetVolumeMultiplier(const float newValue)
-{
-    this->volume_multiplier_ = FMath::Clamp(newValue, 0.0f, GetMaxVolumeMultiplier());
-}
+{ this->volume_multiplier_ = FMath::Clamp(newValue, 0.0f, GetMaxVolumeMultiplier()); }
 
 float UOdinCaptureMedia::GetMaxVolumeMultiplier() const
-{
-    return max_volume_multiplier_;
-}
+{ return max_volume_multiplier_; }
 
 void UOdinCaptureMedia::SetMaxVolumeMultiplier(const float newValue)
-{
-    this->max_volume_multiplier_ = newValue;
-}
+{ this->max_volume_multiplier_ = newValue; }
 
 bool UOdinCaptureMedia::GetEnableMonoMixing() const
-{
-    return bEnableMonoMixing;
-}
+{ return bEnableMonoMixing; }
 
 void UOdinCaptureMedia::SetEnableMonoMixing(const bool bShouldEnableMonoMixing)
 {
@@ -161,19 +143,17 @@ void UOdinCaptureMedia::SetEnableMonoMixing(const bool bShouldEnableMonoMixing)
 }
 
 bool UOdinCaptureMedia::GetIsMuted() const
-{
-    return bIsMuted;
-}
+{ return bIsMuted; }
 
 void UOdinCaptureMedia::SetIsMuted(bool bNewIsMuted)
 {
+    UE_LOG(Odin, Verbose, TEXT("UOdinCaptureMedia::SetIsMuted New Is Muted State: %s"),
+           bNewIsMuted ? TEXT("True") : TEXT("False"));
     bIsMuted = bNewIsMuted;
 }
 
 void UOdinCaptureMedia::Reconnect()
-{
-    ReconnectCaptureMedia(this);
-}
+{ ReconnectCaptureMedia(this); }
 
 void UOdinCaptureMedia::BeginDestroy()
 {
@@ -220,7 +200,7 @@ void UOdinCaptureMedia::AudioGeneratorCallback(UOdinCaptureMedia*     Media,
         return;
     }
 
-    if (Media->stream_handle_ && !Media->GetIsMuted()) {
+    if (Media->GetMediaHandle() && !Media->GetIsMuted()) {
         int32 TargetSampleCount =
             Media->GetEnableMonoMixing() ? NumSamples / StreamNumChannels : NumSamples;
         if (Media->volume_adjusted_audio_size_ < TargetSampleCount) {
@@ -250,7 +230,7 @@ void UOdinCaptureMedia::AudioGeneratorCallback(UOdinCaptureMedia*     Media,
         if (UOdinSubsystem* OdinSubsystem = Media->OdinSubsystemPtr.Get()) {
             TRACE_CPUPROFILER_EVENT_SCOPE(
                 UOdinAudioCapture::AudioGeneratorCallback : OdinSubsystem->PushAudio);
-            OdinSubsystem->PushAudio(Media->stream_handle_, Media->volume_adjusted_audio_,
+            OdinSubsystem->PushAudio(Media->GetMediaHandle(), Media->volume_adjusted_audio_,
                                      TargetSampleCount);
         }
 
@@ -270,14 +250,10 @@ void UOdinCaptureMedia::AudioGeneratorCallback(UOdinCaptureMedia*     Media,
 }
 
 int32 UOdinCaptureMedia::GetSampleRate() const
-{
-    return GeneratorSampleRate;
-}
+{ return GeneratorSampleRate; }
 
 int32 UOdinCaptureMedia::GetNumChannels() const
-{
-    return GetEnableMonoMixing() ? 1 : GeneratorNumChannels;
-}
+{ return GetEnableMonoMixing() ? 1 : GeneratorNumChannels; }
 
 void UOdinCaptureMedia::ReconnectCaptureMedia(TWeakObjectPtr<UOdinCaptureMedia> CaptureMedia)
 {
@@ -338,6 +314,14 @@ void UOdinCaptureMedia::ReconnectCaptureMedia(TWeakObjectPtr<UOdinCaptureMedia> 
 }
 
 float UOdinCaptureMedia::GetVolumeMultiplierAdjusted() const
+{ return FMath::Pow(GetVolumeMultiplier(), 3); }
+
+OdinReturnCode UOdinCaptureMedia::DestroyOdinMediaStreamHandle()
 {
-    return FMath::Pow(GetVolumeMultiplier(), 3);
+    if (const OdinMediaStreamHandle OdinMediaStreamHandle = GetMediaHandle()) {
+        const auto Result = odin_media_stream_destroy(OdinMediaStreamHandle);
+        SetMediaHandle(0);
+        return Result;
+    }
+    return 0;
 }

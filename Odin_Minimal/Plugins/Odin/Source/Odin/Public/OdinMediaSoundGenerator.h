@@ -3,7 +3,7 @@
 #pragma once
 
 #include "odin_sdk.h"
-
+#include "Runtime/Launch/Resources/Version.h"
 #include "DSP/Dsp.h"
 #include "Sound/SoundGenerator.h"
 
@@ -59,4 +59,8 @@ class ODIN_API OdinMediaSoundGenerator : public ISoundGenerator
      * leading to an audio buffer underrun.
      */
     int32 PlaybackStreamReadIndex = 0;
+
+    bool bWasMediaStreamInvalid = false;
+
+    static void NullInput(float* OutAudio, int32 NumSamples);
 };

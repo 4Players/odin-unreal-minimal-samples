@@ -23,8 +23,7 @@ using namespace Audio;
 UOdinSubmixListener::UOdinSubmixListener(const class FObjectInitializer& PCIP)
     : Super(PCIP)
     , CurrentRoomHandle(0)
-{
-}
+{ UE_LOG(Odin, Verbose, TEXT("OdinSubmixListener: Constructor Called.")) }
 
 void UOdinSubmixListener::StartSubmixListener()
 {
@@ -82,14 +81,6 @@ void UOdinSubmixListener::StartSubmixListener()
                     "available."));
         return;
     }
-    const int32 SampleRate = AudioDeviceHandle->SampleRate;
-    if (SampleRate != OdinSampleRate) {
-        UE_LOG(Odin, Warning,
-               TEXT("OdinSubmixListener: Detected difference in sample rate: %d In Sample Rate and "
-                    "%d Odin Sample "
-                    "Rate. Echo Cancellation will not work correctly!"),
-               SampleRate, OdinSampleRate);
-    }
 
     const FOnSubmixBufferListenerError ErrorDelegate =
         FOnSubmixBufferListenerError::CreateUObject(this, &UOdinSubmixListener::StopSubmixListener);
@@ -138,9 +129,7 @@ void UOdinSubmixListener::StopSubmixListener()
 }
 
 void UOdinSubmixListener::SetRoom(OdinRoomHandle room)
-{
-    CurrentRoomHandle = room;
-}
+{ CurrentRoomHandle = room; }
 
 void UOdinSubmixListener::BeginDestroy()
 {
@@ -150,9 +139,7 @@ void UOdinSubmixListener::BeginDestroy()
 }
 
 bool UOdinSubmixListener::IsListening() const
-{
-    return SubmixBufferListener.IsValid() && SubmixBufferListener->IsInitialized();
-}
+{ return SubmixBufferListener.IsValid() && SubmixBufferListener->IsInitialized(); }
 
 void UOdinSubmixListener::SetRecordSubmixOutput(bool bNewActive)
 {
@@ -212,14 +199,10 @@ void FOdinSubmixBufferListenerImplementation::StopListener()
 }
 
 bool FOdinSubmixBufferListenerImplementation::IsInitialized() const
-{
-    return bInitialized;
-}
+{ return bInitialized; }
 
 void FOdinSubmixBufferListenerImplementation::SetRecordSubmixOutput(bool bShouldRecord)
-{
-    bRecordSubmixOutput = bShouldRecord;
-}
+{ bRecordSubmixOutput = bShouldRecord; }
 
 void FOdinSubmixBufferListenerImplementation::StopSubmixRecording()
 {

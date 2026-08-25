@@ -15,14 +15,10 @@ typedef TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>> FCondensedJsonStrin
 
 UOdinJsonObject::UOdinJsonObject(const class FObjectInitializer &PCIP)
     : Super(PCIP)
-{
-    Reset();
-}
+{ Reset(); }
 
 UOdinJsonObject *UOdinJsonObject::ConstructJsonObject(UObject *WorldContextObject)
-{
-    return NewObject<UOdinJsonObject>();
-}
+{ return NewObject<UOdinJsonObject>(); }
 
 UOdinJsonObject *UOdinJsonObject::ConstructJsonObjectFromString(UObject *WorldContextObject,
                                                                 FString  data)
@@ -52,14 +48,10 @@ void UOdinJsonObject::Reset()
 }
 
 TSharedPtr<FJsonObject> &UOdinJsonObject::GetRootObject()
-{
-    return JsonObj;
-}
+{ return JsonObj; }
 
 void UOdinJsonObject::SetRootObject(TSharedPtr<FJsonObject> &JsonObject)
-{
-    JsonObj = JsonObject;
-}
+{ JsonObj = JsonObject; }
 
 FString UOdinJsonObject::EncodeJson() const
 {
@@ -118,7 +110,15 @@ TArray<FString> UOdinJsonObject::GetFieldNames()
         return Result;
     }
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 8
+    TArray<UE::FSharedString> ReadResult;
+    JsonObj->Values.GetKeys(ReadResult);
+    for (UE::FSharedString SharedString : ReadResult) {
+        Result.Add(*SharedString);
+    }
+#else
     JsonObj->Values.GetKeys(Result);
+#endif
 
     return Result;
 }

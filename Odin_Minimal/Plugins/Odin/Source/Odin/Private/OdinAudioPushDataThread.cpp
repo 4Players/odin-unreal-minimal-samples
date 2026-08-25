@@ -30,9 +30,7 @@ void FOdinAudioPushDataThread::PushAudio(OdinMediaStreamHandle MediaHandle, cons
 }
 
 void FOdinAudioPushDataThread::RequestShutdown()
-{
-    bShutdown = true;
-}
+{ bShutdown = true; }
 
 bool FOdinAudioPushDataThread::Init()
 {
@@ -48,13 +46,18 @@ uint32 FOdinAudioPushDataThread::Run()
                 FOdinAudioPushDataThread::Run : odin_audio_push_data calls)
             FOdinAudioPushData DequeuedData;
             while (PushDataQueue.Dequeue(DequeuedData)) {
-                const OdinReturnCode PushResult = odin_audio_push_data(
-                    DequeuedData.MediaStreamHandle, DequeuedData.AudioData.GetData(),
-                    DequeuedData.AudioData.Num());
+                UE_LOG(
+                    Odin, VeryVerbose,
+                    TEXT("FOdinAudioPushDataThread::Run Pushing %d Samples for Media Stream %llu"),
+                    DequeuedData.AudioData.Num(), DequeuedData.MediaStreamHandle);
+                const float*         Data     = DequeuedData.AudioData.GetData();
+                const int32          DataSize = DequeuedData.AudioData.Num();
+                const OdinReturnCode PushResult =
+                    odin_audio_push_data(DequeuedData.MediaStreamHandle, Data, DataSize);
                 if (odin_is_error(PushResult)) {
                     FString FormatOdinError =
                         UOdinFunctionLibrary::FormatOdinError(PushResult, false);
-                    UE_LOG(Odin, Error,
+                    UE_LOG(Odin, Verbose,
                            TEXT("FOdinAudioPushDataThread failed calling odin_audio_push_data, "
                                 "reason: %s"),
                            *FormatOdinError);
@@ -62,7 +65,7 @@ uint32 FOdinAudioPushDataThread::Run()
             }
         }
 
-        FPlatformProcess::Sleep(0.01);
+        FPlatformProcess::Sleep(0.01f);
     }
     return 0;
 }

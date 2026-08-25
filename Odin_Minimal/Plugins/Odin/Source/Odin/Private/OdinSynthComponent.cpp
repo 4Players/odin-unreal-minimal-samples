@@ -26,10 +26,6 @@ bool UOdinSynthComponent::Init(int32& SampleRate)
             SampleRate  = OdinInitSubsystem->GetSampleRate();
         }
     }
-
-    // We reset the stream handle here, to avoid any kind of delays after re-enabling
-    if (playback_media_.IsValid())
-        ResetOdinStream(playback_media_->GetMediaHandle());
     return true;
 }
 
@@ -56,15 +52,11 @@ void UOdinSynthComponent::OnRegister()
 #if ENGINE_MAJOR_VERSION >= 5
 ISoundGeneratorPtr
 UOdinSynthComponent::CreateSoundGenerator(const FSoundGeneratorInitParams& InParams)
-{
-    return SoundGenerator;
-}
+{ return SoundGenerator; }
 #else
 ISoundGeneratorPtr UOdinSynthComponent::CreateSoundGenerator(int32 InSampleRate,
                                                              int32 InNumChannels)
-{
-    return SoundGenerator;
-}
+{ return SoundGenerator; }
 #endif
 void UOdinSynthComponent::Activate(bool bReset)
 {
@@ -85,9 +77,7 @@ void UOdinSynthComponent::NativeOnPreChangePlaybackMedia(UOdinPlaybackMedia* Old
 }
 
 void UOdinSynthComponent::SetOdinStream(OdinMediaStreamHandle NewStreamHandle)
-{
-    ResetOdinStream(NewStreamHandle);
-}
+{ ResetOdinStream(NewStreamHandle); }
 
 void UOdinSynthComponent::ResetOdinStream(OdinMediaStreamHandle HandleToReset)
 {
@@ -104,8 +94,6 @@ void UOdinSynthComponent::Odin_AssignSynthToMedia(UPARAM(ref) UOdinPlaybackMedia
         NativeOnPreChangePlaybackMedia(playback_media_.Get(), media);
         this->playback_media_ = media;
         SoundGenerator->SetStreamReader(playback_media_->GetPlaybackStreamReader());
-
-        SetOdinStream(media->GetMediaHandle());
     } else {
         UE_LOG(Odin, Error,
                TEXT("UOdinSynthComponent::Odin_AssignSynthToMedia: Tried to assign null media to "
@@ -137,16 +125,10 @@ void UOdinSynthComponent::AdjustAttenuation(const FSoundAttenuationSettings& InA
 }
 
 UOdinPlaybackMedia* UOdinSynthComponent::GetConnectedPlaybackMedia() const
-{
-    return playback_media_.Get();
-}
+{ return playback_media_.Get(); }
 
 void UOdinSynthComponent::AddAudioBufferListener(IAudioBufferListener* InAudioBufferListener)
-{
-    SoundGenerator->AddAudioBufferListener(InAudioBufferListener);
-}
+{ SoundGenerator->AddAudioBufferListener(InAudioBufferListener); }
 
 void UOdinSynthComponent::RemoveAudioBufferListener(IAudioBufferListener* InAudioBufferListener)
-{
-    SoundGenerator->RemoveAudioBufferListener(InAudioBufferListener);
-}
+{ SoundGenerator->RemoveAudioBufferListener(InAudioBufferListener); }
